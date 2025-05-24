@@ -4,8 +4,8 @@ const switchToRegister = document.getElementById('switch-to-register');
 const switchToLogin = document.getElementById('switch-to-login');
 const authSection = document.getElementById('auth');
 const formTitle = document.getElementById('form-title');
-const WEB_URL = "Website_Progs/Crick Player"
-const API_URL = "http://localhost:3000"
+const WEB_URL = ""
+const API_URL = "https://31c7-2402-e280-3e2f-2be-4d17-2dcf-4ccf-dcbd.ngrok-free.app"
 
 addEventListener("DOMContentLoaded", (d) => {
 val = getCookie("loggedin");
