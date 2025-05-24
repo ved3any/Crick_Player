@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crick Player - Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+  <nav class="navbar">
+    <img class="logo" src="images/Crick_Player_Logo.png"></img>
+    <ul id="nav" class="nav-tabs">
+      <li id="home-nav" class="nav-tab active">Home</li>
+      <li id="players-nav" class="nav-tab">Players</li>
+      <li id="match-nav" class="nav-tab">Match</li>
+      <li id="stats-nav" class="nav-tab">Stats</li>
+      <button style="display: none;" id="logout-btn" class="logout-button">Logout</button>
+    </ul>
+    <button id="logout-btn" class="logout-button">Logout</button>
+    <i id="menu" onclick="toggleSidebar()" style="font-size: 25px; display: none;" class="fa-solid fa-bars"></i>
+  </nav>
+
+  <div class="tab" style="padding: 10px; display: none;" id="home-tab">
+    <h1 style="position: relative; margin-left: 50%; transform: translateX(-50px); z-index: -1;">Scores</h1>
+    <div class="table-responsive">
+      <table id="score-table" class="table table-dark table-striped table-hover rounded">
+        <thead>
+          <tr>
+            <th>Player Name</th>
+            <th>Total Runs</th>
+            <th>Total Wickets</th>
+            <th>Average Score</th>
+            <th>Matches Played</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- More rows -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="tab" style="padding: 10px; display: flex; flex-direction: column;" id="players-tab">
+    <table id="player-table" class="table table-dark table-striped table-hover rounded">
+      <thead>
+        <tr style="justify-content: center;" class="table-row">
+          <th>Players</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <form
+      style="display: none; margin: 0 50px; position: fixed; top: 40%; left: 50%; min-width: 300px; transform: translateX(-200px);"
+      class="card section" id="player-menu">
+      <input type="text" id="player-name" class="input" placeholder="Enter Player Name.." required />
+      <input class="btn" style="max-width: 70px;" type="submit" value="Add">
+      <button onclick="showplayermenu(false)" type="button" class="btn btn-primary">Cancel</button>
+    </form>
+
+    <button onclick="showplayermenu(true)" style="margin: 0px auto; height:40px;width: 50vw; margin-top: auto;"
+      class="btn btn-secondary">Add Player</button>
+  </div>
+  <div id="match-tab" class="tab" style="justify-content: center; padding: 10px;">
+    <div style="display: flex; justify-content: center; align-items: center;" id="st-div">
+      <button id="st-btn" onclick="playmatch()" class="btn-start">Start Match</button>
+    </div>
+
+    <div id="team-select" class="team-select" style="display: none;">
+      <h2>Select Your Teams</h2>
+      <div class="section">
+        <h3>Players</h3>
+        <ul class="list" id="sourceList">
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3>Team A</h3>
+        <ul class="list" id="team-a"></ul>
+      </div>
+
+      <div class="section">
+        <h3>Team B</h3>
+        <ul class="list" id="team-b"></ul>
+      </div>
+
+      <div style="display: flex; flex-direction: column; margin-top: 50px; margin-bottom: 20px;" class="section">
+        <h3 style="margin: 10px auto; margin-bottom: 20px;"> Who is Batting First?</h3>
+        <div class="team-options">
+          <button data-team="team-a" class="team-btn active">Team A</button>
+          <button data-team="team-b" class="team-btn">Team B</button>
+        </div>
+      </div>
+
+      <button id="btn-done" class="btn-done">Done</button>
+    </div>
+    <div id="striker-select" class="section"
+      style="display: none; margin-top: 50px; flex-direction: column; justify-content: center; align-items: center;">
+      <h4 style="margin: 20px auto; margin-bottom: 10px;"> Select Striker</h4>
+      <select id="striker" class="dropdown">
+        <option value="none">Null</option>
+      </select>
+      <h4 style="margin: 20px auto; margin-bottom: 10px;"> Select Non-Striker</h4>
+      <select id="non-striker" class="dropdown">
+      </select>
+      <h4 style="margin: 60px auto; margin-bottom: 10px;"> Select Bowler</h4>
+      <select id="bowler" class="dropdown">
+      </select>
+      <button id="btn-striker-selected" class="btn-done"
+        style="width: 200px; margin: 10px; margin-top: 40px;">Done</button>
+    </div>
+
+  </div>
+  <script src="script.js"></script>
+</body>
+
+</html>
