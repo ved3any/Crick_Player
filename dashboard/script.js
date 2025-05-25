@@ -330,7 +330,7 @@ function filltablerows() {
                     window.location.reload()
                 })
             }
-
+            console.log(result);
             sessionStorage.setItem("players", JSON.stringify(result));
         })
         .catch(error => {
