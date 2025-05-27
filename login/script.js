@@ -38,7 +38,8 @@ loginForm.addEventListener('submit', (e) => {
   fetch(API_URL + '/login', {
     method: 'POST',
     headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json' , 
+        "ngrok-skip-browser-warning" : true  
     },
     body: JSON.stringify({email : emailvalue, password : passwordvalue})
   })
@@ -72,6 +73,7 @@ registerForm.addEventListener('submit', (e) => {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
+        "ngrok-skip-browser-warning" : true  
     },
     body: JSON.stringify({'username' : usernamevalue, 'email' : emailvalue, 'password' : passwordvalue})
   })
