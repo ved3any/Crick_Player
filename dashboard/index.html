@@ -67,7 +67,7 @@
       class="btn btn-secondary">Add Player</button>
   </div>
   <div id="match-tab" class="tab" style="justify-content: center; padding: 10px;">
-    <div style="display: flex; justify-content: center; align-items: center;" id="st-div">
+    <div style="display: block; justify-content: center; align-items: center;" id="st-div">
       <button id="st-btn" onclick="playmatch()" class="btn-start">Start Match</button>
     </div>
 
@@ -113,6 +113,28 @@
       </select>
       <button id="btn-striker-selected" class="btn-done"
         style="width: 200px; margin: 10px; margin-top: 40px;">Done</button>
+    </div>
+
+    <div id="control-panel" style="display: none; height: 90vh; flex-direction: column; align-items: center; width: 100%;">
+      <div id="team-runs" style="display: flex; z-index: -1; align-items: flex-start; justify-content: center; background: #2a2a9b; background: linear-gradient(10deg,rgba(42, 42, 155, 1) 0%, rgb(25, 117, 150) 50%, rgba(0, 102, 255, 0.783) 100%); width: 150px; height: 29px; clip-path: polygon(95% 0, 80% 100%, 20% 100%, 5% 0);">
+        <span style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: bold; font-size: 20px;">100-0</span>
+      </div>
+      <div class="player-scores-container" style="display: grid; padding: 0px; margin-top: 20px; width: 100%; grid-row-gap: 10px; z-index: -1;">
+      <div id="striker-score" style= " grid-column: 1; grid-row: 1; width: 170px; padding: 5px; padding-left: 10px; align-self: flex-start;  height: 34px; background-color: rgb(40, 40, 40); clip-path: polygon(95% 0, 85% 100%, 0 100%, 0 0%);">Player-1<span style="margin-left: 20%; font-size: small; font-weight: 500;">100</span></div>
+      <div id="non-striker-score" style= "grid-column: 1; grid-row: 2; width: 150px; padding: 5px; padding-left: 10px; align-self: flex-start;  height: 34px; background-color: rgb(40, 40, 40); clip-path: polygon(95% 0, 85% 100%, 0 100%, 0 0%);">Player-2<span style="margin-left: 21%; font-size: small; font-weight: 500;">100</span></div>
+      <div id="bowler-score" style= "grid-column: 3; grid-row: 1; margin-left: auto; width: 160px; padding: 5px; padding-left: 30px; align-self: flex-start;  height: 34px; background-color: rgb(40, 40, 40); clip-path: polygon(0% 0%, 10% 100%, 100% 100%, 100% 0%);">Player-3<span style="margin-left: 20%; font-size: small; font-weight: 500;">100</span></div>
+      </div>
+      <div class="control-btns section" style="background-color: rgba(38, 38, 38, 0.614); display: flex; flex-direction: column; align-items: center; margin-top: auto; padding: 20px;">
+        <div class="ball-btns" style="width: max-content; display: flex; gap: 20px;">
+          <button class="btn">Fair</button>
+          <button class="btn">Wide</button>
+          <button class="btn">No Ball</button>
+        </div>
+        <div class="out-btns" style="margin-top: 10px;">
+          <button class="btn-delete" style="padding: 10px; font-size: 15px; font-weight: 500;">Striker Out</button>
+          <button class="btn-delete" style="padding: 10px; font-size: 15px; font-weight: 500;">Non-Striker Out</button>
+        </div>
+      </div>
     </div>
 
   </div>
