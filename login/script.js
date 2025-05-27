@@ -38,8 +38,10 @@ loginForm.addEventListener('submit', (e) => {
   fetch(API_URL + '/login', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json' ,
-        'Access-Control-Allow-Origin' : 'no'
+      "Access-Control-Allow-Headers" : "Content-Type",
+              "Access-Control-Allow-Origin": "*",
+            'Content-Type': 'application/json',
+             "Access-Control-Allow-Methods": "OPTIONS,POST,GET,PATCH"
     },
     body: JSON.stringify({email : emailvalue, password : passwordvalue})
   })
@@ -72,8 +74,10 @@ registerForm.addEventListener('submit', (e) => {
   fetch(API_URL + '/register', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json' ,
-                'Access-Control-Allow-Origin' : 'no'
+     "Access-Control-Allow-Headers" : "Content-Type",
+              "Access-Control-Allow-Origin": "*",
+            'Content-Type': 'application/json',
+             "Access-Control-Allow-Methods": "OPTIONS,POST,GET,PATCH"
     },
     body: JSON.stringify({'username' : usernamevalue, 'email' : emailvalue, 'password' : passwordvalue})
   })
