@@ -1,5 +1,6 @@
 :root {
   scrollbar-width: none;
+  scroll-behavior: smooth; 
   --primary: #1b5e20;
   --accent: #ffd600;
   --blue-dark: #0d47a1;
@@ -344,6 +345,11 @@ body {
 
 .btn:hover {
   background-color: #7028ff61;
+}
+
+.btn:active {
+  transform: scale(0.97);
+  background-color: #3b25b7d0;
 }
 
 .btn-primary {
