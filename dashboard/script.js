@@ -1,5 +1,5 @@
 const WEB_URL = "";
-const API_URL = "https://9783f159d9ed88.lhr.life"
+const API_URL = "https://ac5b63cfa5824f.lhr.life"
 const logoutBtns = document.querySelectorAll(".logout-button");
 
 window.addEventListener("DOMContentLoaded", () => {
