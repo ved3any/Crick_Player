@@ -5,7 +5,7 @@ const switchToLogin = document.getElementById('switch-to-login');
 const authSection = document.getElementById('auth');
 const formTitle = document.getElementById('form-title');
 const WEB_URL = ""
-const API_URL = "https://test.loca.lt"
+const API_URL = "https://641f-2402-e280-3e2f-2be-7c17-6cd2-3e97-2ad1.ngrok-free.app"
 
 addEventListener("DOMContentLoaded", (d) => {
 val = getCookie("loggedin");
