@@ -16,7 +16,10 @@ window.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    fetch(API_URL + "/data/" + id)
+    fetch(API_URL + "/data/" + id , 
+        {headers : {
+            "ngrok-skip-browser-warning" : true
+        }})
         .then(res => {
             if (!res.ok) {
                 throw new Error("Failed to fetch user data: " + res.status);
@@ -281,7 +284,9 @@ document.getElementById("player-menu").addEventListener("submit", e => {
     fetch(API_URL + "/add-player",
         {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' , 
+            "ngrok-skip-browser-warning" : true
+        },
             body: JSON.stringify({ 'group_id': getCookie("id"), 'name': name })
         }
     )
@@ -296,7 +301,10 @@ document.getElementById("player-menu").addEventListener("submit", e => {
 })
 
 function filltablerows() {
-    fetch(API_URL + "/get-players/" + getCookie("id"))
+    fetch(API_URL + "/get-players/" + getCookie("id") , 
+        {headers : {
+            "ngrok-skip-browser-warning" : true
+        }})
         .then(async res => {
             if (!res.ok) {
                 const error = await res.text();
