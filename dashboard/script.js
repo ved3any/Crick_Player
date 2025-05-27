@@ -1,5 +1,5 @@
 const WEB_URL = "";
-const API_URL = "https://dfe6-2402-e280-3e2f-2be-7419-988b-ac8b-58.ngrok-free.app"
+const API_URL = "https://6792791ff17092.lhr.life"
 const logoutBtns = document.querySelectorAll(".logout-button");
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -79,6 +79,7 @@ function delay(ms) {
 function logout() {
     CreateOrUpdateCookie("loggedin", "false", 1);
     CreateOrUpdateCookie("id", "", 1);
+    sessionStorage.removeItem("players");
     sessionStorage.removeItem("data");
     window.location.pathname = WEB_URL + "/login";
 }
@@ -257,7 +258,8 @@ async function playmatch() {
     console.log(striker)
     console.log(non_striker)
     console.log(bowler)
-
+    document.getElementById('control-panel').style.display = 'flex'
+    document.getElementById('match-tab').style.padding = "1px 0px"
 }
 
 document.getElementById('striker').addEventListener('change', e => {
@@ -279,10 +281,7 @@ document.getElementById("player-menu").addEventListener("submit", e => {
     fetch(API_URL + "/add-player",
         {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 'group_id': getCookie("id"), 'name': name })
         }
     )
@@ -319,7 +318,8 @@ function filltablerows() {
                 btn.classList.add("btn-delete")
                 btn.addEventListener("click", e => {
                     fetch(API_URL + "/remove-player", {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 'id': player.id })
                     }).then(async res => {
                         if (!res.ok) {
@@ -330,7 +330,7 @@ function filltablerows() {
                     window.location.reload()
                 })
             }
-            console.log(result);
+
             sessionStorage.setItem("players", JSON.stringify(result));
         })
         .catch(error => {
