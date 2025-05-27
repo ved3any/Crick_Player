@@ -5,7 +5,7 @@ const switchToLogin = document.getElementById('switch-to-login');
 const authSection = document.getElementById('auth');
 const formTitle = document.getElementById('form-title');
 const WEB_URL = ""
-const API_URL = "https://dfe6-2402-e280-3e2f-2be-7419-988b-ac8b-58.ngrok-free.app"
+const API_URL = "https://6792791ff17092.lhr.life"
 
 addEventListener("DOMContentLoaded", (d) => {
 val = getCookie("loggedin");
