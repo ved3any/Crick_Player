@@ -1,5 +1,5 @@
 const WEB_URL = "";
-const API_URL = "https://641f-2402-e280-3e2f-2be-7c17-6cd2-3e97-2ad1.ngrok-free.app"
+const API_URL = "https://0bd6-2402-e280-3e2f-2be-7c17-6cd2-3e97-2ad1.ngrok-free.app"
 const logoutBtns = document.querySelectorAll(".logout-button");
 
 window.addEventListener("DOMContentLoaded", () => {
