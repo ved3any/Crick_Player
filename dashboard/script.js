@@ -1,5 +1,5 @@
 const WEB_URL = "";
-const API_URL = "https://crick-player-server.onrender.com"
+const API_URL = "http://localhost:3000"
 const logoutBtns = document.querySelectorAll(".logout-button");
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -16,10 +16,7 @@ window.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    fetch(API_URL + "/data/" + id , 
-        {headers : {
-            "ngrok-skip-browser-warning" : true
-        }})
+    fetch(API_URL + "/data/" + id)
         .then(res => {
             if (!res.ok) {
                 throw new Error("Failed to fetch user data: " + res.status);
@@ -36,6 +33,7 @@ window.addEventListener("DOMContentLoaded", () => {
     switchtabs();
     filltablerows();
     const players = JSON.parse(sessionStorage.getItem('players'));
+    if (players) {
     players.forEach(player => {
         const row = document.querySelector('#score-table tbody').insertRow();
         row.insertCell(0).textContent = player.name;
@@ -43,7 +41,19 @@ window.addEventListener("DOMContentLoaded", () => {
         row.insertCell(2).textContent = player.total_wickets;
         row.insertCell(3).textContent = player.bat_average;
         row.insertCell(4).textContent = player.total_matches;
-    })
+    }) 
+    }
+    
+    setTimeout(() => {
+        try {
+        if (document.querySelectorAll('#score-table tbody tr').length != JSON.parse(sessionStorage.getItem('players')).length) {
+            window.location.reload()
+        } 
+        } catch {
+            window.location.reload()
+        }
+    }, 50);
+
 });
 
 function CreateOrUpdateCookie(name, value, days = 7) {
@@ -75,9 +85,6 @@ logoutBtns.forEach(b => {
     b.addEventListener("click", logout)
 });
 
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 function logout() {
     CreateOrUpdateCookie("loggedin", "false", 1);
@@ -258,11 +265,68 @@ async function playmatch() {
         non_striker = Team_B[document.getElementById('non-striker').value]
         bowler = Team_A[document.getElementById('bowler').value]
     }
-    console.log(striker)
-    console.log(non_striker)
-    console.log(bowler)
     document.getElementById('control-panel').style.display = 'flex'
     document.getElementById('match-tab').style.padding = "1px 0px"
+
+    balls = 0;
+    non_striker.total_runs = 0;
+    striker.total_runs = 0;
+    team_runs = 0;
+    wickets = 0;
+
+    updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+
+    await new Promise(resolve => {
+        
+        document.getElementById('fair').addEventListener('click',e => {
+            balls++;
+            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+        })
+
+        document.getElementById('wide').addEventListener('click',e => {
+            team_runs++;
+            striker.total_runs++;
+            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+        })
+
+        document.getElementById('no-ball').addEventListener('click',e => {
+            team_runs++;
+            striker.total_runs++;
+            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+        })
+
+        document.getElementById('re-ball').addEventListener('click',e => {
+            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+        })
+        
+        document.getElementById('strike-change').addEventListener('click',e => {
+            temp = striker
+            striker = non_striker
+            non_striker = temp
+            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+        })
+
+        
+
+    })
+    
+}
+
+function updateScoresUI(team_runs,str_runs,nstr_runs,wickets,balls,str_name,nstr_name,bowler_name) {
+
+    document.getElementById('striker-score').innerHTML = '<span style="margin-left: 20%; font-size: small; font-weight: 500;">0</span>';
+    document.getElementById('non-striker-score').innerHTML = '<span style="margin-left: 21%; font-size: small; font-weight: 500;">0</span>';
+    document.getElementById('bowler-score').innerHTML = '<span style="margin-left: 20%; font-size: small; font-weight: 500;">0</span>';
+
+    document.getElementById('striker-score').innerHTML = str_name + document.getElementById('striker-score').innerHTML;
+    document.getElementById('non-striker-score').innerHTML = nstr_name + document.getElementById('non-striker-score').innerHTML;
+    document.getElementById('bowler-score').innerHTML = bowler_name + document.getElementById('bowler-score').innerHTML;
+
+    document.querySelector('#striker-score span').textContent = str_runs;
+    document.querySelector('#non-striker-score span').textContent = nstr_runs;
+    document.querySelector('#bowler-score span').textContent = balls;
+
+    document.querySelector('#team-runs span').innerText = team_runs + '-' + wickets
 }
 
 document.getElementById('striker').addEventListener('change', e => {
@@ -284,9 +348,7 @@ document.getElementById("player-menu").addEventListener("submit", e => {
     fetch(API_URL + "/add-player",
         {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' , 
-            "ngrok-skip-browser-warning" : true
-        },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 'group_id': getCookie("id"), 'name': name })
         }
     )
@@ -301,10 +363,7 @@ document.getElementById("player-menu").addEventListener("submit", e => {
 })
 
 function filltablerows() {
-    fetch(API_URL + "/get-players/" + getCookie("id") , 
-        {headers : {
-            "ngrok-skip-browser-warning" : true
-        }})
+    fetch(API_URL + "/get-players/" + getCookie("id"))
         .then(async res => {
             if (!res.ok) {
                 const error = await res.text();
