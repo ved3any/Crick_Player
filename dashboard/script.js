@@ -399,6 +399,7 @@ function filltablerows() {
             }
 
             sessionStorage.setItem("players", JSON.stringify(result));
+            return result;
         })
         .catch(error => {
             console.error("Fetch error:", error);
