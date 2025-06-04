@@ -5,7 +5,7 @@ const switchToLogin = document.getElementById('switch-to-login');
 const authSection = document.getElementById('auth');
 const formTitle = document.getElementById('form-title');
 const WEB_URL = ""
-const API_URL = "http://localhost:3000"
+const API_URL = "http://localhost:3000/api"
 
 addEventListener("DOMContentLoaded", (d) => {
 val = getCookie("loggedin");
