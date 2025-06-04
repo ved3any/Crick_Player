@@ -1,5 +1,5 @@
 const WEB_URL = "";
-const API_URL = "http://localhost:3000"
+const API_URL = "http://localhost:3000/api"
 const logoutBtns = document.querySelectorAll(".logout-button");
 
 window.addEventListener("DOMContentLoaded", () => {
