@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 3000;
 
+app.use(express.static(__dirname));
 
 // Connect to your existing MySQL database
 const db = mysql.createConnection({
@@ -27,6 +28,10 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 app.use(bodyParser.json());
+
+app.get('/', (req, res) => {
+    res.sendFile('index.html');
+});
 
 // Register endpoint
 app.post('/api/register', async (req, res) => {
