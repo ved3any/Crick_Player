@@ -2,7 +2,14 @@ const WEB_URL = "";
 const API_URL = "/api"
 const logoutBtns = document.querySelectorAll(".logout-button");
 
-window.addEventListener("DOMContentLoaded", () => {
+const delay = (delayInms) => {
+  return new Promise(resolve => setTimeout(resolve, delayInms));
+};
+
+window.addEventListener("DOMContentLoaded", async () => {
+
+    await delay(100);
+    
     const val = getCookie("loggedin");
     if (val != "true") {
         window.location.pathname = WEB_URL + "/login";
