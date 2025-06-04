@@ -29,7 +29,7 @@ app.use(cors({
 app.use(bodyParser.json());
 
 // Register endpoint
-app.post('/register', async (req, res) => {
+app.post('/api/register', async (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   const { username, email, password } = req.body;
 
@@ -56,7 +56,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.get('/data/:id', async (req, res) => {
+app.get('/api/data/:id', async (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   try {
     const userId = req.params.id;
@@ -76,7 +76,7 @@ app.get('/data/:id', async (req, res) => {
 });
 
 // Login endpoint
-app.post('/login', (req, res) => {
+app.post('/api/login', (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   const { email, password } = req.body;
 
@@ -93,7 +93,7 @@ app.post('/login', (req, res) => {
   });
 });
 
-app.post('/add-player', (req, res) => {
+app.post('/api/add-player', (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   const { group_id, name } = req.body;
   const query = `
@@ -111,7 +111,7 @@ app.post('/add-player', (req, res) => {
   });
 });
 
-app.post('/remove-player', (req, res) => {
+app.post('/api/remove-player', (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   const { id } = req.body;
   query = "DELETE FROM players WHERE id = ?;"
@@ -122,7 +122,7 @@ app.post('/remove-player', (req, res) => {
   res.status(200).send("Player Removal Successful");
 })
 
-app.get('/get-players/:id', async (req, res) => {
+app.get('/api/get-players/:id', async (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   const group_id = req.params.id;
 
