@@ -6,9 +6,7 @@ const delay = (delayInms) => {
   return new Promise(resolve => setTimeout(resolve, delayInms));
 };
 
-window.addEventListener("DOMContentLoaded", async () => {
-
-    await delay(100);
+window.addEventListener("DOMContentLoaded", () => {
     
     const val = getCookie("loggedin");
     if (val != "true") {
