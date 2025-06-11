@@ -2,12 +2,7 @@ const WEB_URL = "";
 const API_URL = "/api"
 const logoutBtns = document.querySelectorAll(".logout-button");
 
-const delay = (delayInms) => {
-  return new Promise(resolve => setTimeout(resolve, delayInms));
-};
-
 window.addEventListener("DOMContentLoaded", () => {
-    
     const val = getCookie("loggedin");
     if (val != "true") {
         window.location.pathname = WEB_URL + "/login";
@@ -226,7 +221,9 @@ async function playmatch() {
             e.innerHTML = `${player.name}`;
             e.value = `${Team_B.indexOf(player)}`;
             document.getElementById('bowler').appendChild(e);
+            document.getElementById('bowlers').innerHTML = document.getElementById('bowler').innerHTML;
         })
+
 
     }
     else {
@@ -245,6 +242,7 @@ async function playmatch() {
             e.innerHTML = `${player.name}`;
             e.value = `${Team_A.indexOf(player)}`;
             document.getElementById('bowler').appendChild(e);
+            document.getElementById('bowlers').innerHTML = document.getElementById('bowler').innerHTML;
         })
     }
 
@@ -283,8 +281,61 @@ async function playmatch() {
 
     await new Promise(resolve => {
         
-        document.getElementById('fair').addEventListener('click',e => {
+        document.getElementById('fair').addEventListener('click',async e => {
+            document.getElementById("overlay").classList.add("active")
+            document.getElementById("overlay").removeAttribute("onclick")
+            document.getElementById("menu").removeAttribute("onclick")
+            document.getElementById("runs-select").style.display = "block";
+            
+            await new Promise(res => {
+                document.getElementById("runs-select").addEventListener("submit", e => {
+                    e.preventDefault();
+                    res()
+                })
+            })
+            run = document.getElementById("runs-ran").value
+            striker.total_runs = parseInt(striker.total_runs) + parseInt(run)
+            team_runs = parseInt(team_runs) + parseInt(run)
+            if (run == 1 || run == 3) {
+                temp = striker
+                striker = non_striker
+                non_striker = temp  
+            }
+            
+            document.getElementById("runs-select").style.display = "none";
+
+            if (balls == 5) {
+                document.getElementById("bowler-select").style.display = "block"
+
+                await new Promise(res => {
+                    document.getElementById("bowler-select").addEventListener("submit" ,e => {
+                        e.preventDefault()
+                        res()
+                    })
+                })
+
+                bowler.total_overs++
+                players[bowler.id] = bowler
+
+                if (batting_team) {
+                   bowler = Team_A[document.getElementById("bowlers").value]
+                }
+                else {
+                   bowler = Team_B[document.getElementById("bowlers").value]
+                }
+                document.getElementById("bowler-select").style.display = "none"
+                balls = -1
+                temp = striker
+                striker = non_striker
+                non_striker = temp  
+            } 
+
             balls++;
+                
+            document.getElementById("overlay").classList.remove("active")
+            document.getElementById("overlay").setAttribute("onclick","toggleSidebar()")
+            document.getElementById("menu").setAttribute("onclick", "toggleSidebar()")
+            
             updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
         })
 
@@ -303,16 +354,22 @@ async function playmatch() {
         document.getElementById('re-ball').addEventListener('click',e => {
             updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
         })
-        
+
+        document.getElementById('str-out').addEventListener('click',e => {
+            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+        })
+
+        document.getElementById('nstr-out').addEventListener('click',e => {
+            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+        }) 
+
         document.getElementById('strike-change').addEventListener('click',e => {
             temp = striker
             striker = non_striker
             non_striker = temp
             updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
         })
-
         
-
     })
     
 }
@@ -364,7 +421,6 @@ document.getElementById("player-menu").addEventListener("submit", e => {
             }
         })
     window.location.reload();
-    window.location.reload();
 })
 
 function filltablerows() {
@@ -404,7 +460,6 @@ function filltablerows() {
             }
 
             sessionStorage.setItem("players", JSON.stringify(result));
-            return result;
         })
         .catch(error => {
             console.error("Fetch error:", error);
