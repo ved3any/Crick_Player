@@ -443,7 +443,7 @@ input {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: background-color 0.25s ease, transform 0.15s ease;
-  margin-top: 200px;
+  margin-bottom: 50px;
 }
 
 .btn-start:hover {
