@@ -67,7 +67,7 @@
       class="btn btn-secondary">Add Player</button>
   </div>
   <div id="match-tab" class="tab" style="justify-content: center; padding: 10px;">
-    <div style="display: block; justify-content: center; align-items: center;" id="st-div">
+    <div style="display: flex; justify-content: center; align-items: center; width: 100%; height: 89vh;" id="st-div">
       <button id="st-btn" onclick="playmatch()" class="btn-start">Start Match</button>
     </div>
 
@@ -127,6 +127,31 @@
       <div id="non-striker-score" style= "grid-column: 1; grid-row: 2; width: 150px; padding: 5px; padding-left: 10px; align-self: flex-start;  height: 34px; background-color: rgb(40, 40, 40); clip-path: polygon(95% 0, 85% 100%, 0 100%, 0 0%);"><span style="margin-left: 21%; font-size: small; font-weight: 500;">100</span></div>
       <div id="bowler-score" style= "grid-column: 3; grid-row: 1; margin-left: auto; width: 160px; padding: 5px; padding-left: 30px; align-self: flex-start;  height: 34px; background-color: rgb(40, 40, 40); clip-path: polygon(0% 0%, 10% 100%, 100% 100%, 100% 0%);"><span style="margin-left: 20%; font-size: small; font-weight: 500;">100</span></div>
       </div>
+
+      <form
+        style="display: none; margin: auto; padding: 20px; position: fixed; top: 40%; left: 50%; width: 100px; transform: translateX(-150px);"
+        class="section" id="runs-select">
+        <h4 style="margin: 20px auto; margin-bottom: 10px;">Select Runs Ran</h4>
+         <select id="runs-ran" class="dropdown">
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="6">6</option>
+         </select>
+        <input class="btn" style="max-width: 70px;" type="submit" value="Ok">
+      </form>
+
+      <form
+        style="display: none; margin: auto; padding: 20px; position: fixed; top: 40%; left: 50%; width: 100px; transform: translateX(-150px);"
+        class="section" id="bowler-select">
+        <h4 style="margin: 20px auto; margin-bottom: 10px;">Select Bowler For Over!</h4>
+         <select id="bowlers" class="dropdown">
+         </select>
+        <input class="btn" style="max-width: 70px;" type="submit" value="Ok">
+      </form>
+
       <div class="control-btns section" style="width: fit-content; background-color: rgba(38, 38, 38, 0.614); display: flex; flex-direction: column; align-items: center; margin-top: auto; padding: 10px; padding-top: 20px;">
         <div class="ball-btns" style="width: max-content; display: flex; gap: 10px;">
           <button id="fair" class="btn">Fair</button>
