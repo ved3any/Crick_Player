@@ -166,7 +166,7 @@ app.post('/api/update-player-scores', async (req, res) => {
 
         db.query(query, values, (err, result) => {
           if (err) {
-            reject(`Failed to update ${player.name}`);
+            reject(`Failed to update ${player.name} Because : ${err}`);
           } else {
             resolve();
           }
