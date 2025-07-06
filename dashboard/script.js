@@ -643,7 +643,6 @@ async function playmatch() {
             }
             updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
         })
-
     })
 
 }
