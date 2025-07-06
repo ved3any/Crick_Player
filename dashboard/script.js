@@ -32,27 +32,16 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     switchtabs();
     filltablerows();
-    const players = JSON.parse(sessionStorage.getItem('players'));
-    if (players) {
-    players.forEach(player => {
-        const row = document.querySelector('#score-table tbody').insertRow();
-        row.insertCell(0).textContent = player.name;
-        row.insertCell(1).textContent = player.total_runs;
-        row.insertCell(2).textContent = player.total_wickets;
-        row.insertCell(3).textContent = player.bat_average;
-        row.insertCell(4).textContent = player.total_matches;
-    }) 
-    }
-    
-    setTimeout(() => {
-        try {
-        if (document.querySelectorAll('#score-table tbody tr').length != JSON.parse(sessionStorage.getItem('players')).length) {
-            window.location.reload()
-        } 
-        } catch {
-            window.location.reload()
-        }
-    }, 50);
+
+    // setTimeout(() => {
+    //     try {
+    //         if (document.querySelectorAll('#score-table tbody tr').length != JSON.parse(sessionStorage.getItem('players')).length) {
+    //             window.location.reload()
+    //         }
+    //     } catch {
+    //         window.location.reload()
+    //     }
+    // }, 50);
 
 });
 
@@ -139,6 +128,53 @@ document.querySelectorAll('.team-options button').forEach(b => {
     })
 })
 
+function endmatch(match_over, players, plyrs) {
+    if (match_over) {
+        // Deduplicate both arrays by id
+        players = players.reduce((acc, curr) => {
+            if (!acc.some(p => p.id === curr.id)) acc.push(curr);
+            return acc;
+        }, []);
+
+        plyrs = plyrs.reduce((acc, curr) => {
+            if (!acc.some(p => p.id === curr.id)) acc.push(curr);
+            return acc;
+        }, []);
+
+        console.log("Before merge", plyrs);
+        console.log("Live data", players);
+
+        let updatedPlayers = plyrs.map(storedPlayer => {
+            const livePlayer = players.find(p => p.id === storedPlayer.id);
+            if (livePlayer) {
+                return mergePlayerStats(storedPlayer, livePlayer);
+            }
+            return storedPlayer;
+        });
+
+        console.log("After merge", updatedPlayers);
+
+        sessionStorage.setItem("players", JSON.stringify(updatedPlayers));
+
+        fetch(API_URL + "/update-player-scores",
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 'plyrs': JSON.stringify(updatedPlayers) })
+            })
+            .then(async res => {
+                if (!res.ok) {
+                    body = await res.text()
+                    alert(body)
+                }
+            })
+
+    } else {
+
+    }
+
+}
+
 async function playmatch() {
     document.getElementById('st-div').style.display = "none";
     document.getElementById('team-select').style.display = "flex";
@@ -169,7 +205,7 @@ async function playmatch() {
             document.querySelectorAll('#team-select #team-a li').forEach(p => {
                 players.forEach(player => {
                     if (player.id == p.getAttribute('data-id')) {
-                        Team_A.push(player)
+                        Team_A.push({ ...player })
                     }
                 })
             })
@@ -177,7 +213,7 @@ async function playmatch() {
             document.querySelectorAll('#team-select #team-b li').forEach(p => {
                 players.forEach(player => {
                     if (player.id == p.getAttribute('data-id')) {
-                        Team_B.push(player)
+                        Team_B.push({ ...player })
                     }
                 })
             })
@@ -204,6 +240,25 @@ async function playmatch() {
     document.getElementById('striker-select').style.display = "flex"
     document.getElementById('striker').innerHTML = ""
 
+    let plyrs = [...Team_A, ...Team_B];
+
+    Team_A.forEach(p => {
+        p.bat_average = 0
+        p.total_fours = 0
+        p.total_overs = 0
+        p.total_runs = 0
+        p.total_sixes = 0
+        p.total_wickets = 0
+    })
+    Team_B.forEach(p => {
+        p.bat_average = 0
+        p.total_fours = 0
+        p.total_overs = 0
+        p.total_runs = 0
+        p.total_sixes = 0
+        p.total_wickets = 0
+    })
+
 
     if (batting_team == 0) {
 
@@ -221,9 +276,10 @@ async function playmatch() {
             e.innerHTML = `${player.name}`;
             e.value = `${Team_B.indexOf(player)}`;
             document.getElementById('bowler').appendChild(e);
-            document.getElementById('bowlers').innerHTML = document.getElementById('bowler').innerHTML;
+
         })
 
+        document.getElementById('bowlers').innerHTML = document.getElementById('bowler').innerHTML;
 
     }
     else {
@@ -242,9 +298,12 @@ async function playmatch() {
             e.innerHTML = `${player.name}`;
             e.value = `${Team_A.indexOf(player)}`;
             document.getElementById('bowler').appendChild(e);
-            document.getElementById('bowlers').innerHTML = document.getElementById('bowler').innerHTML;
+
         })
+        document.getElementById('bowlers').innerHTML = document.getElementById('bowler').innerHTML;
     }
+
+    document.getElementById('batsmen').innerHTML = document.getElementById('striker').innerHTML;
 
     document.getElementById('striker').dispatchEvent(new CustomEvent('change'));
     await new Promise(resolve => {
@@ -272,21 +331,31 @@ async function playmatch() {
     document.getElementById('match-tab').style.padding = "1px 0px"
 
     balls = 0;
-    non_striker.total_runs = 0;
+
     striker.total_runs = 0;
     team_runs = 0;
     wickets = 0;
 
-    updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+    if (non_striker == null) {
+        non_striker = {
+            name: "No Non Striker!",
+            total_runs: "",
+            id: ""
+        }
+    } else {
+        non_striker.total_runs = 0;
+    }
+
+    updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
 
     await new Promise(resolve => {
-        
-        document.getElementById('fair').addEventListener('click',async e => {
+
+        document.getElementById('fair').addEventListener('click', async e => {
             document.getElementById("overlay").classList.add("active")
             document.getElementById("overlay").removeAttribute("onclick")
             document.getElementById("menu").removeAttribute("onclick")
             document.getElementById("runs-select").style.display = "block";
-            
+
             await new Promise(res => {
                 document.getElementById("runs-select").addEventListener("submit", e => {
                     e.preventDefault();
@@ -297,18 +366,25 @@ async function playmatch() {
             striker.total_runs = parseInt(striker.total_runs) + parseInt(run)
             team_runs = parseInt(team_runs) + parseInt(run)
             if (run == 1 || run == 3) {
-                temp = striker
-                striker = non_striker
-                non_striker = temp  
+                if (!non_striker.id == "") {
+                    temp = striker
+                    striker = non_striker
+                    non_striker = temp
+                }
+            } else if (run == 6) {
+                striker.total_sixes++;
             }
-            
+            else if (run == 4) {
+                striker.total_fours++;
+            }
+
             document.getElementById("runs-select").style.display = "none";
 
             if (balls == 5) {
                 document.getElementById("bowler-select").style.display = "block"
 
                 await new Promise(res => {
-                    document.getElementById("bowler-select").addEventListener("submit" ,e => {
+                    document.getElementById("bowler-select").addEventListener("submit", e => {
                         e.preventDefault()
                         res()
                     })
@@ -318,63 +394,260 @@ async function playmatch() {
                 players[bowler.id] = bowler
 
                 if (batting_team) {
-                   bowler = Team_A[document.getElementById("bowlers").value]
+                    bowler = Team_A[document.getElementById("bowlers").value]
                 }
                 else {
-                   bowler = Team_B[document.getElementById("bowlers").value]
+                    bowler = Team_B[document.getElementById("bowlers").value]
                 }
                 document.getElementById("bowler-select").style.display = "none"
                 balls = -1
-                temp = striker
-                striker = non_striker
-                non_striker = temp  
-            } 
+                if (!non_striker.id == "") {
+                    temp = striker
+                    striker = non_striker
+                    non_striker = temp
+                }
+            }
 
             balls++;
-                
+
             document.getElementById("overlay").classList.remove("active")
-            document.getElementById("overlay").setAttribute("onclick","toggleSidebar()")
+            document.getElementById("overlay").setAttribute("onclick", "toggleSidebar()")
             document.getElementById("menu").setAttribute("onclick", "toggleSidebar()")
-            
-            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
         })
 
-        document.getElementById('wide').addEventListener('click',e => {
+        document.getElementById('wide').addEventListener('click', e => {
             team_runs++;
             striker.total_runs++;
-            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
         })
 
-        document.getElementById('no-ball').addEventListener('click',e => {
+        document.getElementById('no-ball').addEventListener('click', e => {
             team_runs++;
             striker.total_runs++;
-            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
         })
 
-        document.getElementById('re-ball').addEventListener('click',e => {
-            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+        document.getElementById('re-ball').addEventListener('click', e => {
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
         })
 
-        document.getElementById('str-out').addEventListener('click',e => {
-            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+        document.getElementById('str-out').addEventListener('click', async e => {
+            if (!batting_team) {
+                Team_A.forEach(p => {
+                    try {
+                        if (!non_striker.id == "") {
+                            if (p.id == non_striker.id) {
+                                document.getElementById('batsmen').querySelector('option[value="' + Team_A.indexOf(p) + '"]').remove();
+                            }
+                        }
+                        if (p.id == striker.id) {
+                            document.getElementById('batsmen').querySelector('option[value="' + Team_A.indexOf(p) + '"]').remove();
+                        }
+                    }
+                    catch { }
+                });
+            }
+            else {
+                Team_B.forEach(p => {
+                    try {
+                        if (!non_striker.id == "") {
+                            if (p.id == non_striker.id) {
+                                document.getElementById('batsmen').querySelector('option[value="' + Team_B.indexOf(p) + '"]').remove();
+                            }
+                        }
+                        if (p.id == striker.id) {
+                            document.getElementById('batsmen').querySelector('option[value="' + Team_B.indexOf(p) + '"]').remove();
+                        }
+                    }
+                    catch { }
+                });
+            }
+            bowler.total_wickets++
+            wickets++
+            document.getElementById("overlay").classList.add("active")
+            document.getElementById("overlay").removeAttribute("onclick")
+            document.getElementById("menu").removeAttribute("onclick")
+            document.getElementById("bat-select").style.display = "block";
+
+            await new Promise(r => {
+                document.getElementById("bat-select").addEventListener("submit", i => {
+                    i.preventDefault();
+                    r();
+                })
+            });
+            document.getElementById("bat-select").style.display = "none";
+            players[striker.id] = striker;
+            if (document.getElementById("batsmen").value == "") {
+                if (!non_striker.id == "") {
+                    striker = non_striker
+                    non_striker = {
+                        name: "No Non Striker!",
+                        total_runs: "",
+                        id: ""
+                    }
+                } else {
+                    endmatch(true, players, plyrs)
+                    window.location.reload()
+                }
+            }
+            else {
+                if (batting_team) {
+                    striker = Team_B[document.getElementById("batsmen").value]
+                }
+                else {
+                    striker = Team_A[document.getElementById("batsmen").value]
+                }
+            }
+            if (balls == 5) {
+                document.getElementById("bowler-select").style.display = "block"
+
+                await new Promise(res => {
+                    document.getElementById("bowler-select").addEventListener("submit", e => {
+                        e.preventDefault()
+                        res()
+                    })
+                })
+
+                bowler.total_overs++
+                players[bowler.id] = bowler
+
+                if (batting_team) {
+                    bowler = Team_A[document.getElementById("bowlers").value]
+                }
+                else {
+                    bowler = Team_B[document.getElementById("bowlers").value]
+                }
+                document.getElementById("bowler-select").style.display = "none"
+                balls = -1
+                if (!non_striker.id == "") {
+                    temp = striker
+                    striker = non_striker
+                    non_striker = temp
+                }
+            }
+
+            balls++;
+
+
+            document.getElementById("overlay").classList.remove("active")
+            document.getElementById("overlay").setAttribute("onclick", "toggleSidebar()")
+            document.getElementById("menu").setAttribute("onclick", "toggleSidebar()")
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
         })
 
-        document.getElementById('nstr-out').addEventListener('click',e => {
-            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
-        }) 
+        document.getElementById('nstr-out').addEventListener('click', async e => {
+            if (!non_striker.id == "") {
+                if (!batting_team) {
+                    Team_A.forEach(p => {
+                        try {
+                            if (p.id == non_striker.id) {
+                                console.log(non_striker.id)
+                                document.getElementById('batsmen').querySelector('option[value="' + Team_A.indexOf(p) + '"]').remove();
+                            }
+                            if (p.id == striker.id) {
+                                document.getElementById('batsmen').querySelector('option[value="' + Team_A.indexOf(p) + '"]').remove();
+                            }
+                        }
+                        catch { }
+                    });
+                }
+                else {
+                    Team_B.forEach(p => {
+                        try {
+                            if (p.id == non_striker.id) {
+                                document.getElementById('batsmen').querySelector('option[value="' + Team_B.indexOf(p) + '"]').remove();
+                            }
+                            if (p.id == striker.id) {
+                                document.getElementById('batsmen').querySelector('option[value="' + Team_B.indexOf(p) + '"]').remove();
+                            }
+                        }
+                        catch { }
+                    });
+                }
+                bowler.total_wickets++
+                wickets++
+                document.getElementById("overlay").classList.add("active")
+                document.getElementById("overlay").removeAttribute("onclick")
+                document.getElementById("menu").removeAttribute("onclick")
+                document.getElementById("bat-select").style.display = "block";
 
-        document.getElementById('strike-change').addEventListener('click',e => {
-            temp = striker
-            striker = non_striker
-            non_striker = temp
-            updateScoresUI(team_runs,striker.total_runs,non_striker.total_runs,wickets,balls,striker.name,non_striker.name,bowler.name)
+                await new Promise(r => {
+                    document.getElementById("bat-select").addEventListener("submit", i => {
+                        i.preventDefault();
+                        r();
+                    })
+                });
+                document.getElementById("bat-select").style.display = "none";
+                players[non_striker.id] = non_striker;
+
+                if (document.getElementById("batsmen").value == "") {
+                    non_striker = {
+                        name: "No Non Striker!",
+                        total_runs: "",
+                        id: ""
+                    }
+                }
+                else {
+                    if (batting_team) {
+                        non_striker = Team_B[document.getElementById("batsmen").value]
+                    }
+                    else {
+                        non_striker = Team_A[document.getElementById("batsmen").value]
+                    }
+
+                    if (balls == 5) {
+                        document.getElementById("bowler-select").style.display = "block"
+
+                        await new Promise(res => {
+                            document.getElementById("bowler-select").addEventListener("submit", e => {
+                                e.preventDefault()
+                                res()
+                            })
+                        })
+
+                        bowler.total_overs++
+                        players[bowler.id] = bowler
+
+                        if (batting_team) {
+                            bowler = Team_A[document.getElementById("bowlers").value]
+                        }
+                        else {
+                            bowler = Team_B[document.getElementById("bowlers").value]
+                        }
+                        document.getElementById("bowler-select").style.display = "none"
+                        balls = -1
+                        if (!non_striker.id == "") {
+                            temp = striker
+                            striker = non_striker
+                            non_striker = temp
+                        }
+                    }
+
+                    balls++;
+
+                }
+                document.getElementById("overlay").classList.remove("active")
+                document.getElementById("overlay").setAttribute("onclick", "toggleSidebar()")
+                document.getElementById("menu").setAttribute("onclick", "toggleSidebar()")
+            }
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
         })
-        
+
+        document.getElementById('strike-change').addEventListener('click', e => {
+            if (!non_striker.id == "") {
+                temp = striker
+                striker = non_striker
+                non_striker = temp
+            }
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
+        })
     })
-    
+
 }
 
-function updateScoresUI(team_runs,str_runs,nstr_runs,wickets,balls,str_name,nstr_name,bowler_name) {
+function updateScoresUI(team_runs, str_runs, nstr_runs, wickets, balls, str_name, nstr_name, bowler_name, players, plyrs) {
 
     document.getElementById('striker-score').innerHTML = '<span style="margin-left: 20%; font-size: small; font-weight: 500;">0</span>';
     document.getElementById('non-striker-score').innerHTML = '<span style="margin-left: 21%; font-size: small; font-weight: 500;">0</span>';
@@ -390,6 +663,18 @@ function updateScoresUI(team_runs,str_runs,nstr_runs,wickets,balls,str_name,nstr
 
     document.querySelector('#team-runs span').innerText = team_runs + '-' + wickets
 }
+
+function mergePlayerStats(base, live) {
+    return {
+        ...base,
+        total_runs: base.total_runs + live.total_runs,
+        total_wickets: base.total_wickets + live.total_wickets,
+        total_sixes: base.total_sixes + live.total_sixes,
+        total_fours: base.total_fours + live.total_fours,
+        total_overs: base.total_overs + live.total_overs,
+    };
+}
+
 
 document.getElementById('striker').addEventListener('change', e => {
     document.getElementById('non-striker').innerHTML = document.getElementById('striker').innerHTML;
@@ -429,43 +714,50 @@ function filltablerows() {
             if (!res.ok) {
                 const error = await res.text();
                 alert('An Error Occurred: ' + error);
-                throw new Error(error); // Ensure the chain stops here if there's an error
+                throw new Error(error);
             }
-            return res.json(); // <-- Fix here
+            return res.json();
         })
         .then(result => {
             const tableBody = document.querySelector("#player-table tbody");
+            tableBody.innerHTML = "";
 
             for (const player of result) {
-                const row = tableBody.insertRow();          // add "const"
-                row.classList.add("table-row")
-                const cell = row.insertCell(0);             // add "const"
-                const btn = row.insertCell(1);             // add "const"
-                cell.textContent = player.name;
-                btn.textContent = "Remove"
-                btn.classList.add("btn-delete")
-                btn.addEventListener("click", e => {
+                const row = tableBody.insertRow();
+                row.classList.add("table-row");
+                row.insertCell(0).textContent = player.name;
+
+                const btn = row.insertCell(1);
+                btn.textContent = "Remove";
+                btn.classList.add("btn-delete");
+                btn.addEventListener("click", () => {
                     fetch(API_URL + "/remove-player", {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 'id': player.id })
-                    }).then(async res => {
-                        if (!res.ok) {
-                            body = await res.text()
-                            alert(body)
-                        }
-                    })
-                    window.location.reload()
-                })
+                    }).then(() => window.location.reload());
+                });
             }
 
             sessionStorage.setItem("players", JSON.stringify(result));
-        })
-        .catch(error => {
-            console.error("Fetch error:", error);
+
+            // ✅ Moved here so it's run only after players are loaded
+            renderScoreTable(result);
         });
 }
 
+function renderScoreTable(players) {
+    const table = document.querySelector('#score-table tbody');
+    table.innerHTML = "";
+    players.forEach(player => {
+        const row = table.insertRow();
+        row.insertCell(0).textContent = player.name;
+        row.insertCell(1).textContent = player.total_runs;
+        row.insertCell(2).textContent = player.total_wickets;
+        row.insertCell(3).textContent = player.bat_average;
+        row.insertCell(4).textContent = player.total_matches;
+    });
+}
 function moveItem(button, targetId) {
     const li = button.closest('li');
     const itemId = li.getAttribute('data-id');

@@ -33,6 +33,7 @@ app.get('/', (req, res) => {
     res.sendFile('index.html');
 });
 
+
 // Register endpoint
 app.post('/api/register', async (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
@@ -123,8 +124,8 @@ app.post('/api/remove-player', (req, res) => {
 
   db.query(query, [id], async (err, result) => {
     if (err) return res.status(500).send('Internal Server Error Cannot Remove Player');
+    res.status(200).send("Player Removal Successful");
   });
-  res.status(200).send("Player Removal Successful");
 })
 
 app.get('/api/get-players/:id', async (req, res) => {
@@ -135,6 +136,51 @@ app.get('/api/get-players/:id', async (req, res) => {
     if (err) return res.status(501).send('Cannot Find Players');
     return res.status(200).json(result); // Send JSON directly
   });
+});
+
+
+app.post('/api/update-player-scores', async (req, res) => {
+  res.set("ngrok-skip-browser-warning", true);
+  const { plyrs } = req.body;
+  const players = JSON.parse(plyrs);
+  const query = `
+    UPDATE players 
+    SET total_runs = ?, total_wickets = ?, bat_average = ?,
+    total_overs = ?, total_matches = ?, total_sixes = ?, total_fours = ?
+    WHERE id = ?
+  `;
+
+  try {
+    const updatePromises = players.map(player => {
+      return new Promise((resolve, reject) => {
+        const values = [
+          player.total_runs,
+          player.total_wickets,
+          ((player.total_matches + 1) === 0 ? 0 : player.total_runs / player.total_matches),
+          player.total_overs,
+          (player.total_matches + 1),
+          player.total_sixes,
+          player.total_fours,
+          player.id
+        ];
+
+        db.query(query, values, (err, result) => {
+          if (err) {
+            reject(`Failed to update ${player.name}`);
+          } else {
+            resolve();
+          }
+        });
+      });
+    });
+
+    await Promise.all(updatePromises);
+    res.status(200).send("Player Update Successful");
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error: " + error);
+  }
 });
 
 
