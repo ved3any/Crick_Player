@@ -7,13 +7,14 @@ const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 3000;
 
+app.use(express.static(__dirname));
 
 // Connect to your existing MySQL database
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'P@ssw0rd',
-  database: 'crick_player_db', // change this to match your DB name
+  host: 'bw7ro6awadsfwregxfp8-mysql.services.clever-cloud.com',
+  user: 'urlc4c478mjhfoql',
+  password: 'JFrBpSizqkpWVXYheX9t',
+  database: 'bw7ro6awadsfwregxfp8', // change this to match your DB name
   connectTimeout: 100000
 });
 
@@ -22,11 +23,19 @@ db.connect((err) => {
   console.log('Connected to MySQL');
 });
 
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+}));
 app.use(bodyParser.json());
 
+app.get('/', (req, res) => {
+    res.sendFile('index.html');
+});
+
+
 // Register endpoint
-app.post('/register', async (req, res) => {
+app.post('/api/register', async (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   const { username, email, password } = req.body;
 
@@ -53,7 +62,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.get('/data/:id', async (req, res) => {
+app.get('/api/data/:id', async (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   try {
     const userId = req.params.id;
@@ -73,7 +82,7 @@ app.get('/data/:id', async (req, res) => {
 });
 
 // Login endpoint
-app.post('/login', (req, res) => {
+app.post('/api/login', (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   const { email, password } = req.body;
 
@@ -90,7 +99,7 @@ app.post('/login', (req, res) => {
   });
 });
 
-app.post('/add-player', (req, res) => {
+app.post('/api/add-player', (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   const { group_id, name } = req.body;
   const query = `
@@ -108,7 +117,7 @@ app.post('/add-player', (req, res) => {
   });
 });
 
-app.post('/remove-player', (req, res) => {
+app.post('/api/remove-player', (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   const { id } = req.body;
   query = "DELETE FROM players WHERE id = ?;"
@@ -119,7 +128,7 @@ app.post('/remove-player', (req, res) => {
   });
 })
 
-app.get('/get-players/:id', async (req, res) => {
+app.get('/api/get-players/:id', async (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   const group_id = req.params.id;
 
@@ -130,7 +139,7 @@ app.get('/get-players/:id', async (req, res) => {
 });
 
 
-app.post('/update-player-scores', async (req, res) => {
+app.post('/api/update-player-scores', async (req, res) => {
   res.set("ngrok-skip-browser-warning", true);
   const { plyrs } = req.body;
   const players = JSON.parse(plyrs);
