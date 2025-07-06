@@ -9,7 +9,7 @@ const PORT = 3000;
 
 app.use(express.static(__dirname));
 
-// Connect to your existing MySQL database
+// Connect to your existing MySQL databasee
 const db = mysql.createConnection({
   host: 'bw7ro6awadsfwregxfp8-mysql.services.clever-cloud.com',
   user: 'urlc4c478mjhfoql',
@@ -146,19 +146,24 @@ app.post('/api/update-player-scores', async (req, res) => {
   const query = `
     UPDATE players 
     SET total_runs = ?, total_wickets = ?, bat_average = ?,
-    total_overs = ?, total_matches = ?, total_sixes = ?, total_fours = ?
+        total_overs = ?, total_matches = ?, total_sixes = ?, total_fours = ?
     WHERE id = ?
   `;
 
   try {
     const updatePromises = players.map(player => {
       return new Promise((resolve, reject) => {
+        const total_matches = player.total_matches + 1;
+        const bat_average = (total_matches === 0 || player.total_runs === 0) 
+          ? 0 
+          : (player.total_runs / total_matches);
+
         const values = [
           player.total_runs,
           player.total_wickets,
-          ((player.total_matches + 1) === 0 ? 0 : player.total_runs / player.total_matches),
+          bat_average,
           player.total_overs,
-          (player.total_matches + 1),
+          total_matches,
           player.total_sixes,
           player.total_fours,
           player.id
@@ -166,7 +171,8 @@ app.post('/api/update-player-scores', async (req, res) => {
 
         db.query(query, values, (err, result) => {
           if (err) {
-            reject(`Failed to update ${player.name} Because : ${err}`);
+            console.error(`Error updating player ${player.name}:`, err);
+            reject(`Failed to update ${player.name} because: ${err.message}`);
           } else {
             resolve();
           }
@@ -182,6 +188,7 @@ app.post('/api/update-player-scores', async (req, res) => {
     res.status(500).send("Internal Server Error: " + error);
   }
 });
+
 
 
 app.listen(PORT, () => {
