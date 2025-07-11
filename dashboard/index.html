@@ -66,7 +66,7 @@
     <button onclick="showplayermenu(true)" style="margin: 0px auto; height:40px;width: 50vw; margin-top: auto;"
       class="btn btn-secondary">Add Player</button>
   </div>
-  <div id="match-tab" class="tab" style="justify-content: center; padding: 10px;">
+  <div id="match-tab" class="tab" style="justify-content: center; padding: 10px; flex-direction: column;">
     <div style="display: flex; justify-content: center; align-items: center; width: 100%; height: 89vh;" id="st-div">
       <button id="st-btn" onclick="playmatch()" class="btn-start">Start Match</button>
     </div>
@@ -99,8 +99,14 @@
 
       <button id="btn-done" class="btn-done">Done</button>
     </div>
+
+    <div id="innings-info" class="innings-info">
+      <i class="fas fa-flag-checkered"></i>
+      <h2>First Innings Over <span class="divider">|</span> Target: <span id="target-score">142</span></h2>
+    </div>
+
     <div id="striker-select" class="section"
-      style="display: none; margin-top: 50px; flex-direction: column; justify-content: center; align-items: center;">
+      style="display: none; margin-top: 50px; flex-direction: column; justify-content: center; align-items: center; margin-left: auto; margin-right: auto;">
       <h4 style="margin: 20px auto; margin-bottom: 10px;"> Select Striker</h4>
       <select id="striker" class="dropdown">
         <option value="none">Null</option>
@@ -115,31 +121,46 @@
         style="width: 200px; margin: 10px; margin-top: 40px;">Done</button>
     </div>
 
-    <div id="control-panel" style="display: none; height: 90vh; flex-direction: column; align-items: center; width: 100%;">
+    <div id="control-panel"
+      style="display: none; height: 90vh; flex-direction: column; align-items: center; width: 100%;">
       <div style="width: 90%; margin-left: 40px; display: grid; grid-template-columns: auto 40px;">
-      <div id="team-runs" style="margin-left: auto; margin-right: auto; grid-column: 1; grid-row: 1; display: flex; z-index: -1; align-items: flex-start; justify-content: center; background: #2a2a9b; background: linear-gradient(10deg,rgba(42, 42, 155, 1) 0%, rgb(25, 117, 150) 50%, rgba(0, 102, 255, 0.783) 100%); width: 150px; height: 29px; clip-path: polygon(95% 0, 80% 100%, 20% 100%, 5% 0);">
-        <span style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: bold; font-size: 20px;">100-0</span>
+        <div id="team-runs"
+          style="margin-left: auto; margin-right: auto; grid-column: 1; grid-row: 1; display: flex; z-index: -1; align-items: flex-start; justify-content: center; width: 150px; height: 29px; clip-path: polygon(95% 0, 80% 100%, 20% 100%, 5% 0);" class="team-runs">
+          <span
+            style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: bold; font-size: 20px;">100-0</span>
+        </div>
+        <button id="inning-over"
+          style="grid-column: 2; grid-row: 1; background-color: #ffffff00; border: none; margin-top: 1px;"><i
+            class="fa-solid fa-right-from-bracket" style="color: #ffffff; font-size: 20px;"></i></button>
       </div>
-        <button id="inning-over" style="grid-column: 2; grid-row: 1; background-color: #ffffff00; border: none; margin-top: 1px;"><i class="fa-solid fa-right-from-bracket" style="color: #ffffff; font-size: 20px;"></i></button>
-      </div>
-      <div class="player-scores-container" style="display: grid; padding: 0px; margin-top: 20px; width: 100%; grid-row-gap: 10px; z-index: -1;">
-      <div id="striker-score" style= " grid-column: 1; grid-row: 1; width: 170px; padding: 5px; padding-left: 10px; align-self: flex-start;  height: 34px; background-color: rgb(40, 40, 40); clip-path: polygon(95% 0, 85% 100%, 0 100%, 0 0%);"><span style="margin-left: 20%; font-size: small; font-weight: 500;">100</span></div>
-      <div id="non-striker-score" style= "grid-column: 1; grid-row: 2; width: 150px; padding: 5px; padding-left: 10px; align-self: flex-start;  height: 34px; background-color: rgb(40, 40, 40); clip-path: polygon(95% 0, 85% 100%, 0 100%, 0 0%);"><span style="margin-left: 21%; font-size: small; font-weight: 500;">100</span></div>
-      <div id="bowler-score" style= "grid-column: 3; grid-row: 1; margin-left: auto; width: 160px; padding: 5px; padding-left: 30px; align-self: flex-start;  height: 34px; background-color: rgb(40, 40, 40); clip-path: polygon(0% 0%, 10% 100%, 100% 100%, 100% 0%);"><span style="margin-left: 20%; font-size: small; font-weight: 500;">100</span></div>
+      <div class="player-scores-container"
+        style="display: grid; padding: 0px; margin-top: 20px; width: 100%; grid-row-gap: 10px; z-index: -1;">
+        <div id="striker-score"
+          style=" grid-column: 1; grid-row: 1; width: 170px; padding: 5px; padding-left: 10px; align-self: flex-start;  height: 34px; background-color: rgb(40, 40, 40); clip-path: polygon(95% 0, 85% 100%, 0 100%, 0 0%);">
+          <span style="margin-left: 20%; font-size: small; font-weight: 500;">100</span>
+        </div>
+        <div id="non-striker-score"
+          style="grid-column: 1; grid-row: 2; width: 150px; padding: 5px; padding-left: 10px; align-self: flex-start;  height: 34px; background-color: rgb(40, 40, 40); clip-path: polygon(95% 0, 85% 100%, 0 100%, 0 0%);">
+          <span style="margin-left: 21%; font-size: small; font-weight: 500;">100</span>
+        </div>
+        <div id="bowler-score"
+          style="grid-column: 3; grid-row: 1; margin-left: auto; width: 160px; padding: 5px; padding-left: 30px; align-self: flex-start;  height: 34px; background-color: rgb(40, 40, 40); clip-path: polygon(0% 0%, 10% 100%, 100% 100%, 100% 0%);">
+          <span style="margin-left: 20%; font-size: small; font-weight: 500;">100</span>
+        </div>
       </div>
 
       <form
         style="display: none; margin: auto; padding: 20px; position: fixed; top: 40%; left: 50%; width: 100px; transform: translateX(-150px);"
         class="section" id="runs-select">
         <h4 style="margin: 20px auto; margin-bottom: 10px;">Select Runs Ran</h4>
-         <select id="runs-ran" class="dropdown">
+        <select id="runs-ran" class="dropdown">
           <option value="0">0</option>
           <option value="1">1</option>
           <option value="2">2</option>
           <option value="3">3</option>
           <option value="4">4</option>
           <option value="6">6</option>
-         </select>
+        </select>
         <input class="btn" style="max-width: 70px; margin-top: 10px;" type="submit" value="Ok">
       </form>
 
@@ -147,8 +168,8 @@
         style="display: none; margin: auto; padding: 20px; position: fixed; top: 40%; left: 50%; width: 100px; transform: translateX(-150px);"
         class="section" id="bowler-select">
         <h4 style="margin: 20px auto; margin-bottom: 10px;">Select Bowler For Over!</h4>
-         <select id="bowlers" class="dropdown">
-         </select>
+        <select id="bowlers" class="dropdown">
+        </select>
         <input class="btn" style="max-width: 70px; margin-top: 10px;" type="submit" value="Ok">
       </form>
 
@@ -156,11 +177,12 @@
         style="display: none; margin: auto; padding: 20px; position: fixed; top: 40%; left: 50%; width: 100px; transform: translateX(-150px);"
         class="section" id="bat-select">
         <h4 style="margin: 20px auto; margin-bottom: 10px;">Select Next Batsman!</h4>
-         <select id="batsmen" class="dropdown"></select>
+        <select id="batsmen" class="dropdown"></select>
         <input class="btn" style="max-width: 70px; margin-top: 10px;" type="submit" value="Ok">
       </form>
 
-      <div class="control-btns section" style="width: fit-content; background-color: rgba(38, 38, 38, 0.614); display: flex; flex-direction: column; align-items: center; margin-top: auto; padding: 10px; padding-top: 20px;">
+      <div class="control-btns section"
+        style="width: fit-content; background-color: rgba(38, 38, 38, 0.614); display: flex; flex-direction: column; align-items: center; margin-top: auto; padding: 10px; padding-top: 20px;">
         <div class="ball-btns" style="width: max-content; display: flex; gap: 10px;">
           <button id="fair" class="btn">Fair</button>
           <button id="wide" class="btn">Wide</button>
@@ -168,12 +190,44 @@
           <button id="re-ball" class="btn">Re-Ball</button>
         </div>
         <div class="out-btns" style="display: flex; margin-top: 10px;">
-          <button id="str-out" class="btn-delete" style="padding: 10px; font-size: 15px; font-weight: 500;">Striker Out</button>
-          <button id="nstr-out" class="btn-delete" style="padding: 10px; font-size: 15px; font-weight: 500;">Non-Striker Out</button>
-          <button id="strike-change" class="btn-delete" style=" font-size: 15px; font-weight: 500; background-color: #ffffffeb; border: 1px black; color: black;">Strike Change</button>
+          <button id="str-out" class="btn-delete" style="padding: 10px; font-size: 15px; font-weight: 500;">Striker
+            Out</button>
+          <button id="nstr-out" class="btn-delete" style="padding: 10px; font-size: 15px; font-weight: 500;">Non-Striker
+            Out</button>
+          <button id="strike-change" class="btn-delete"
+            style=" font-size: 15px; font-weight: 500; background-color: #ffffffeb; border: 1px black; color: black;">Strike
+            Change</button>
         </div>
       </div>
     </div>
+
+    <div id="match-over-screen" class="match-over-screen">
+      <div class="match-summary-card">
+        <h1> Match Over</h1>
+        <p class="congrats-text">Well played, teams!</p>
+
+        <div class="summary-section">
+          <div class="team-summary">
+            <h2>Team A</h2>
+            <p>Runs: <span id="teamA-runs">128</span></p>
+            <p>Wickets: <span id="teamA-wickets">6</span></p>
+          </div>
+          <div class="team-summary">
+            <h2>Team B</h2>
+            <p>Runs: <span id="teamB-runs">126</span></p>
+            <p>Wickets: <span id="teamB-wickets">8</span></p>
+          </div>
+        </div>
+
+        <div class="highlight-player">
+          <h3>🎖️ Player of the Match</h3>
+          <p id="player-of-match">Kaushik - 42 Runs, 2 Wickets</p>
+        </div>
+
+        <button class="btn-finish" onclick="window.location.reload()">Finish</button>
+      </div>
+    </div>
+
 
   </div>
   <script src="script.js"></script>
