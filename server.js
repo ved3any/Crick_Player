@@ -189,7 +189,9 @@ app.post('/api/update-player-scores', async (req, res) => {
   }
 });
 
-
+app.get('/api/keep-alive', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
