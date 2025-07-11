@@ -128,58 +128,95 @@ document.querySelectorAll('.team-options button').forEach(b => {
     })
 })
 
-function endmatch(match_over, players, plyrs) {
-    if (match_over) {
-        // Deduplicate both arrays by id
-        players = players.reduce((acc, curr) => {
-            if (!acc.some(p => p.id === curr.id)) acc.push(curr);
-            return acc;
-        }, []);
+function save_matchscores(players, plyrs) {
+    // Deduplicate both arrays by id
+    players = players.reduce((acc, curr) => {
+        if (!acc.some(p => p.id === curr.id)) acc.push(curr);
+        return acc;
+    }, []);
 
-        plyrs = plyrs.reduce((acc, curr) => {
-            if (!acc.some(p => p.id === curr.id)) acc.push(curr);
-            return acc;
-        }, []);
+    plyrs = plyrs.reduce((acc, curr) => {
+        if (!acc.some(p => p.id === curr.id)) acc.push(curr);
+        return acc;
+    }, []);
 
-        console.log("Before merge", plyrs);
-        console.log("Live data", players);
 
-        let updatedPlayers = plyrs.map(storedPlayer => {
-            const livePlayer = players.find(p => p.id === storedPlayer.id);
-            if (livePlayer) {
-                return mergePlayerStats(storedPlayer, livePlayer);
+    let updatedPlayers = plyrs.map(storedPlayer => {
+        const livePlayer = players.find(p => p.id === storedPlayer.id);
+        if (livePlayer) {
+            return mergePlayerStats(storedPlayer, livePlayer);
+        }
+        return storedPlayer;
+    });
+
+
+    sessionStorage.setItem("players", JSON.stringify(updatedPlayers));
+
+    fetch(API_URL + "/update-player-scores",
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 'plyrs': JSON.stringify(updatedPlayers) })
+        })
+        .then(async res => {
+            if (!res.ok) {
+                body = await res.text()
+                alert(body)
             }
-            return storedPlayer;
-        });
-
-        console.log("After merge", updatedPlayers);
-
-        sessionStorage.setItem("players", JSON.stringify(updatedPlayers));
-
-        fetch(API_URL + "/update-player-scores",
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 'plyrs': JSON.stringify(updatedPlayers) })
-            })
-            .then(async res => {
-                if (!res.ok) {
-                    body = await res.text()
-                    alert(body)
-                }
-            })
-
-    } else {
-
-    }
-
+        })
 }
+
+function getPlayerOfTheMatch(players) {
+    console.log(players)
+    return players.reduce((best, player) => {
+        // Destructure relevant stats with defaults
+        const {
+            total_runs = 0,
+            total_wickets = 0,
+            total_fours = 0,
+            total_sixes = 0,
+            total_overs = 0,
+            bat_average = 0,
+            total_matches = 1  // fallback to 1 to avoid division by zero
+        } = player;
+
+        // Scoring formula
+        const battingScore = (
+            total_runs * 1 +
+            total_fours * 0.5 +
+            total_sixes * 1.5 +
+            (total_runs >= 30 ? 5 : 0) +
+            (total_runs >= 50 ? 10 : 0) +
+            (total_runs >= 100 ? 15 : 0) +
+            bat_average * 1
+        );
+
+        const bowlingScore = (
+            total_wickets * 20 +
+            total_overs * 2
+        );
+
+        const consistencyBonus = total_matches >= 5 ? 5 : 0;
+
+        const totalScore = battingScore + bowlingScore + consistencyBonus;
+
+        if (!best || totalScore > best.score) {
+            return {
+                player,
+                score: totalScore
+            };
+        }
+
+        return best;
+    }, null)?.player || null;
+}
+
 
 async function playmatch() {
     document.getElementById('st-div').style.display = "none";
     document.getElementById('team-select').style.display = "flex";
     const players = JSON.parse(sessionStorage.getItem("players"))
-    const first_inning = true;
+    let first_inning = true;
 
     document.getElementById('team-a').innerHTML = ""
     document.getElementById('team-b').innerHTML = ""
@@ -276,7 +313,6 @@ async function playmatch() {
             e.innerHTML = `${player.name}`;
             e.value = `${Team_B.indexOf(player)}`;
             document.getElementById('bowler').appendChild(e);
-
         })
 
         document.getElementById('bowlers').innerHTML = document.getElementById('bowler').innerHTML;
@@ -346,7 +382,153 @@ async function playmatch() {
         non_striker.total_runs = 0;
     }
 
-    updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
+    function intersectListsById(firstList, secondList) {
+        const secondIds = new Set(secondList.map(item => item.id));
+        return firstList.filter(item => secondIds.has(item.id));
+    }
+
+    async function inning_over() {
+        if (first_inning) {
+            first_inning = false
+
+            if (batting_team) {
+                document.getElementById('teamB-runs').innerHTML = team_runs
+                document.getElementById('teamA-wickets').innerHTML = wickets
+            } else {
+                document.getElementById('teamA-runs').innerHTML = team_runs
+                document.getElementById('teamB-wickets').innerHTML = wickets
+            }
+            document.getElementById("target-score").textContent = parseInt(team_runs) + 1;
+            document.getElementById('control-panel').style.display = "none"
+            document.getElementById('striker-select').style.display = "flex"
+            document.getElementById('striker-select').style.marginTop = "10px"
+            document.getElementById('striker').innerHTML = ""
+            document.getElementById('bowler').innerHTML = ""
+            document.getElementById("innings-info").style.display = "flex"
+
+            if (batting_team) {
+                batting_team = false;
+            } else {
+                batting_team = true;
+            }
+
+            if (batting_team == 0) {
+
+                Team_A.forEach(player => {
+                    e = document.createElement('option')
+                    e.innerHTML = `${player.name}`;
+                    e.value = `${Team_A.indexOf(player)}`;
+                    document.getElementById('striker').appendChild(e);
+                })
+
+                document.getElementById('non-striker').innerHTML = document.getElementById('striker').innerHTML
+
+                Team_B.forEach(player => {
+                    e = document.createElement('option')
+                    e.innerHTML = `${player.name}`;
+                    e.value = `${Team_B.indexOf(player)}`;
+                    document.getElementById('bowler').appendChild(e);
+                })
+
+                document.getElementById('bowlers').innerHTML = document.getElementById('bowler').innerHTML;
+
+            }
+            else {
+
+                Team_B.forEach(player => {
+                    e = document.createElement('option')
+                    e.innerHTML = `${player.name}`;
+                    e.value = `${Team_B.indexOf(player)}`;
+                    document.getElementById('striker').appendChild(e);
+                })
+
+                document.getElementById('non-striker').innerHTML = document.getElementById('striker').innerHTML
+
+                Team_A.forEach(player => {
+                    e = document.createElement('option')
+                    e.innerHTML = `${player.name}`;
+                    e.value = `${Team_A.indexOf(player)}`;
+                    document.getElementById('bowler').appendChild(e);
+
+                })
+                document.getElementById('bowlers').innerHTML = document.getElementById('bowler').innerHTML;
+            }
+
+            document.getElementById('batsmen').innerHTML = document.getElementById('striker').innerHTML;
+
+            document.getElementById('striker').dispatchEvent(new CustomEvent('change'));
+            await new Promise(resolve => {
+                document.getElementById('btn-striker-selected').addEventListener('click', e => {
+                    resolve();
+                })
+            }, { once: true })
+
+            document.getElementById('striker-select').style.display = "none"
+            striker = ""
+            non_striker = ""
+            bowler = ""
+            if (batting_team == 0) {
+                striker = Team_A[document.getElementById('striker').value]
+                non_striker = Team_A[document.getElementById('non-striker').value]
+                bowler = Team_B[document.getElementById('bowler').value]
+
+            }
+            else {
+                striker = Team_B[document.getElementById('striker').value]
+                non_striker = Team_B[document.getElementById('non-striker').value]
+                bowler = Team_A[document.getElementById('bowler').value]
+            }
+            document.getElementById("team-runs").classList.add('team-runs-opp')
+            document.getElementById("team-runs").classList.remove('team-runs')
+            document.querySelector('#team-runs span').innerText = "0-" + parseInt(parseInt(team_runs) + 1)
+            document.getElementById("innings-info").style.display = "none"
+            document.getElementById('control-panel').style.display = 'flex'
+            document.getElementById('match-tab').style.padding = "1px 0px"
+
+            balls = 0;
+
+            striker.total_runs = 0;
+            team_runs = 0;
+            wickets = 0;
+
+            if (non_striker == null) {
+                non_striker = {
+                    name: "No Non Striker!",
+                    total_runs: "",
+                    id: ""
+                }
+            } else {
+                non_striker.total_runs = 0;
+            }
+
+        }
+        else {
+            save_matchscores(players, plyrs)
+            let best_player = getPlayerOfTheMatch(intersectListsById(players, plyrs))
+            let f_str = best_player.name + ' - ' + best_player.total_runs + ' Runs , ' + best_player.total_wickets + ' Wickets'
+            document.getElementById("player-of-match").innerHTML = f_str
+            if (batting_team) {
+                document.getElementById('teamB-runs').innerHTML = team_runs
+                document.getElementById('teamA-wickets').innerHTML = wickets
+            } else {
+                document.getElementById('teamA-runs').innerHTML = team_runs
+                document.getElementById('teamB-wickets').innerHTML = wickets
+            }
+            let t = document.querySelector('#team-runs span').innerText.split('-')
+            if (team_runs >= parseInt(t[1])) {
+                if (batting_team) {
+                    document.querySelector(".match-summary-card p").innerHTML = "Team B Wonn!"
+                } else {
+                    document.querySelector(".match-summary-card p").innerHTML = "Team A Wonn!"
+                }
+            }
+            document.getElementById("match-over-screen").style.display = "flex"
+
+        }
+        updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs, first_inning)
+    }
+
+    updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs, first_inning)
 
     await new Promise(resolve => {
 
@@ -414,23 +596,45 @@ async function playmatch() {
             document.getElementById("overlay").setAttribute("onclick", "toggleSidebar()")
             document.getElementById("menu").setAttribute("onclick", "toggleSidebar()")
 
-            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs, first_inning)
+
+            if (!first_inning) {
+                let t = document.querySelector('#team-runs span').innerText.split('-')
+                if (team_runs >= parseInt(t[1])) {
+                    inning_over();
+                    return; // stop further updates
+                }
+            }
         })
 
         document.getElementById('wide').addEventListener('click', e => {
             team_runs++;
             striker.total_runs++;
-            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs, first_inning)
+            if (!first_inning) {
+                let t = document.querySelector('#team-runs span').innerText.split('-')
+                if (team_runs >= parseInt(t[1])) {
+                    inning_over();
+                    return; // stop further updates
+                }
+            }
         })
 
         document.getElementById('no-ball').addEventListener('click', e => {
             team_runs++;
             striker.total_runs++;
-            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs, first_inning)
+            if (!first_inning) {
+                let t = document.querySelector('#team-runs span').innerText.split('-')
+                if (team_runs >= parseInt(t[1])) {
+                    inning_over();
+                    return; // stop further updates
+                }
+            }
         })
 
         document.getElementById('re-ball').addEventListener('click', e => {
-            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs, first_inning)
         })
 
         document.getElementById('str-out').addEventListener('click', async e => {
@@ -488,8 +692,11 @@ async function playmatch() {
                         id: ""
                     }
                 } else {
-                    endmatch(true, players, plyrs)
-                    window.location.reload()
+                    inning_over()
+                    document.getElementById("overlay").classList.remove("active")
+                    document.getElementById("overlay").setAttribute("onclick", "toggleSidebar()")
+                    document.getElementById("menu").setAttribute("onclick", "toggleSidebar()")
+                    return;
                 }
             }
             else {
@@ -534,7 +741,14 @@ async function playmatch() {
             document.getElementById("overlay").classList.remove("active")
             document.getElementById("overlay").setAttribute("onclick", "toggleSidebar()")
             document.getElementById("menu").setAttribute("onclick", "toggleSidebar()")
-            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs, first_inning)
+            if (!first_inning) {
+                let t = document.querySelector('#team-runs span').innerText.split('-')
+                if (team_runs >= parseInt(t[1])) {
+                    inning_over();
+                    return; // stop further updates
+                }
+            }
         })
 
         document.getElementById('nstr-out').addEventListener('click', async e => {
@@ -543,7 +757,6 @@ async function playmatch() {
                     Team_A.forEach(p => {
                         try {
                             if (p.id == non_striker.id) {
-                                console.log(non_striker.id)
                                 document.getElementById('batsmen').querySelector('option[value="' + Team_A.indexOf(p) + '"]').remove();
                             }
                             if (p.id == striker.id) {
@@ -632,7 +845,14 @@ async function playmatch() {
                 document.getElementById("overlay").setAttribute("onclick", "toggleSidebar()")
                 document.getElementById("menu").setAttribute("onclick", "toggleSidebar()")
             }
-            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs, first_inning)
+            if (!first_inning) {
+                let t = document.querySelector('#team-runs span').innerText.split('-')
+                if (team_runs >= parseInt(t[1])) {
+                    inning_over();
+                    return; // stop further updates
+                }
+            }
         })
 
         document.getElementById('strike-change').addEventListener('click', e => {
@@ -641,28 +861,39 @@ async function playmatch() {
                 striker = non_striker
                 non_striker = temp
             }
-            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs)
+            updateScoresUI(team_runs, striker.total_runs, non_striker.total_runs, wickets, balls, striker.name, non_striker.name, bowler.name, players, plyrs, first_inning)
         })
+
+        document.getElementById("inning-over").addEventListener("click", e => {
+            inning_over()
+        });
+
     })
 
+    function updateScoresUI(team_runs, str_runs, nstr_runs, wickets, balls, str_name, nstr_name, bowler_name, players, plyrs, tgmode) {
+
+        document.getElementById('striker-score').innerHTML = '<span style="margin-left: 20%; font-size: small; font-weight: 500;">0</span>';
+        document.getElementById('non-striker-score').innerHTML = '<span style="margin-left: 21%; font-size: small; font-weight: 500;">0</span>';
+        document.getElementById('bowler-score').innerHTML = '<span style="margin-left: 20%; font-size: small; font-weight: 500;">0</span>';
+
+        document.getElementById('striker-score').innerHTML = str_name + document.getElementById('striker-score').innerHTML;
+        document.getElementById('non-striker-score').innerHTML = nstr_name + document.getElementById('non-striker-score').innerHTML;
+        document.getElementById('bowler-score').innerHTML = bowler_name + document.getElementById('bowler-score').innerHTML;
+
+        document.querySelector('#striker-score span').textContent = str_runs;
+        document.querySelector('#non-striker-score span').textContent = nstr_runs;
+        document.querySelector('#bowler-score span').textContent = balls;
+        if (tgmode) {
+            document.querySelector('#team-runs span').innerText = team_runs + '-' + wickets
+        } else {
+            let t = document.querySelector('#team-runs span').innerText.split('-')
+            document.querySelector('#team-runs span').innerText = team_runs + '-' + t[1]
+        }
+    }
+
 }
 
-function updateScoresUI(team_runs, str_runs, nstr_runs, wickets, balls, str_name, nstr_name, bowler_name, players, plyrs) {
 
-    document.getElementById('striker-score').innerHTML = '<span style="margin-left: 20%; font-size: small; font-weight: 500;">0</span>';
-    document.getElementById('non-striker-score').innerHTML = '<span style="margin-left: 21%; font-size: small; font-weight: 500;">0</span>';
-    document.getElementById('bowler-score').innerHTML = '<span style="margin-left: 20%; font-size: small; font-weight: 500;">0</span>';
-
-    document.getElementById('striker-score').innerHTML = str_name + document.getElementById('striker-score').innerHTML;
-    document.getElementById('non-striker-score').innerHTML = nstr_name + document.getElementById('non-striker-score').innerHTML;
-    document.getElementById('bowler-score').innerHTML = bowler_name + document.getElementById('bowler-score').innerHTML;
-
-    document.querySelector('#striker-score span').textContent = str_runs;
-    document.querySelector('#non-striker-score span').textContent = nstr_runs;
-    document.querySelector('#bowler-score span').textContent = balls;
-
-    document.querySelector('#team-runs span').innerText = team_runs + '-' + wickets
-}
 
 function mergePlayerStats(base, live) {
     return {
